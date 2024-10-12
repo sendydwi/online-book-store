@@ -23,7 +23,7 @@ func NewRestHandler(db *gorm.DB) *UserHandler {
 }
 
 func (u *UserHandler) RegisterHandler(r *gin.Engine) {
-	rGroup := r.Group("api/v1/user")
+	rGroup := r.Group("v1/users")
 	rGroup.POST("/register", u.RegisterUser)
 	rGroup.POST("/login", u.LoginUser)
 	rGroup.POST("/logout", u.LogoutUser)
@@ -34,11 +34,13 @@ func (u *UserHandler) RegisterUser(c *gin.Context) {
 	err := c.BindJSON(&request)
 	if err != nil {
 		log.Printf("[register_user][error] failed to read request %s", err.Error())
+		c.AbortWithError(http.StatusBadRequest, err)
 	}
 
 	err = u.Svc.RegisterUser(request.Email, request.Password)
 	if err != nil {
 		log.Printf("[register_user][error] failed to register user %s", err.Error())
+		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 
 	c.JSON(http.StatusOK, api.GenericResponse{

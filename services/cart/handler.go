@@ -18,17 +18,15 @@ func NewRestHandler(db *gorm.DB) *CartHandler {
 }
 
 func (c *CartHandler) RegisterHandler(r *gin.Engine) {
+	rGroup := r.Group("v1/carts")
+	rGroup.POST("/update", c.UpdateCartItem)
+	rGroup.GET("/", c.GetCart)
+}
+
+func (c *CartHandler) UpdateCartItem(ctx *gin.Context) {
 
 }
 
-func (c *CartHandler) AddItem() {
-
-}
-
-func (c *CartHandler) RemoveItem() {
-
-}
-
-func (c *CartHandler) DeleteItem() {
+func (c *CartHandler) GetCart(ctx *gin.Context) {
 
 }
