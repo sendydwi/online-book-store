@@ -24,7 +24,7 @@ func (s *Service) CreateOrder(userId string, request apiorder.CreateOrderRequest
 	}
 
 	order := entity.Order{
-		ID:              uuid.NewString(),
+		OrderId:         uuid.NewString(),
 		UserId:          userId,
 		Status:          entity.OrderStatusWaitingForPayment,
 		TotalPrice:      cartItems.TotalPrice,
@@ -42,7 +42,7 @@ func (s *Service) CreateOrder(userId string, request apiorder.CreateOrderRequest
 		snapshot := adapter.ConvertToProductSnapshot(product.ProductDetail, product.Stock, product.Price)
 
 		orderItem := entity.OrderItem{
-			OrderId:         order.ID,
+			OrderId:         order.OrderId,
 			ProductId:       item.ProductId,
 			SubtotalPrice:   item.SubtotalPrice,
 			Quantity:        item.Quantity,

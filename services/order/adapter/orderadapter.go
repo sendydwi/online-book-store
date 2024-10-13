@@ -23,7 +23,7 @@ func ConvertToProductSnapshot(detail apiproduct.ProductDetail, stock int, price 
 
 func ConvertToApiOrder(entity entity.Order) apiorder.Order {
 	return apiorder.Order{
-		ID:              entity.ID,
+		ID:              entity.OrderId,
 		UserId:          entity.UserId,
 		Status:          entity.Status,
 		TotalPrice:      entity.TotalPrice,
@@ -33,7 +33,7 @@ func ConvertToApiOrder(entity entity.Order) apiorder.Order {
 
 func ConvertToApiOrderItem(entity entity.OrderItem) apiorder.OrderItem {
 	return apiorder.OrderItem{
-		ID:              entity.ID,
+		ID:              entity.OrderItemId,
 		OrderId:         entity.OrderId,
 		ProductId:       entity.ProductId,
 		SubtotalPrice:   entity.SubtotalPrice,
