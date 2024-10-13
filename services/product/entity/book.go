@@ -1,9 +1,9 @@
-package model
+package entity
 
 import "time"
 
-type BookModel struct {
-	BookId         int       `json:"book_id" gorm:"primary_key"`
+type Book struct {
+	ID             int       `json:"id" gorm:"primary_key"`
 	ISBN           string    `json:"isbn" gorm:"unique"`
 	Title          string    `json:"title"`
 	Subtitle       string    `json:"subtitle"`
@@ -14,7 +14,9 @@ type BookModel struct {
 	Description    string    `json:"description"`
 	TotalStock     int       `json:"total_stock"`
 	AvailableStock int       `json:"available_stock"`
+	IsActive       bool      `json:"is_active"`
 	OnHoldStock    int       `json:"on_hold_stock"`
+	Price          float32   `json:"price"`
 	CreatedAt      time.Time `json:"created_at"`
 	CreatedBy      string    `json:"created_by"`
 	LastUpdatedAt  time.Time `json:"last_updated_at"`

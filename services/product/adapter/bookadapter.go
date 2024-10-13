@@ -2,11 +2,12 @@ package adapter
 
 import (
 	apiproduct "github.com/sendydwi/online-book-store/api/product"
-	"github.com/sendydwi/online-book-store/services/product/model"
+	"github.com/sendydwi/online-book-store/services/product/entity"
 )
 
-func BookModelToProductResponse(model model.BookModel) apiproduct.ProductResponse {
+func BookModelToProductResponse(model entity.Book) apiproduct.ProductResponse {
 	bookDetail := apiproduct.BookDetail{}
+	bookDetail.ProductId = model.ID
 	bookDetail.ISBN = model.ISBN
 	bookDetail.Author = model.Author
 	bookDetail.Description = model.Description
@@ -18,11 +19,12 @@ func BookModelToProductResponse(model model.BookModel) apiproduct.ProductRespons
 	response := apiproduct.ProductResponse{
 		BookDetail: bookDetail,
 		Stock:      model.AvailableStock,
+		Price:      model.Price,
 	}
 	return response
 }
 
-func BookModelListToProductResponseList(model []model.BookModel) []apiproduct.ProductResponse {
+func BookModelListToProductResponseList(model []entity.Book) []apiproduct.ProductResponse {
 	responseList := []apiproduct.ProductResponse{}
 	for _, m := range model {
 		response := BookModelToProductResponse(m)

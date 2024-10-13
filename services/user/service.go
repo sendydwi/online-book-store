@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/sendydwi/online-book-store/services/user/model"
+	"github.com/sendydwi/online-book-store/services/user/entity"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,7 +24,7 @@ func (s *Service) RegisterUser(email, password string) error {
 		return errors.New("email already used")
 	}
 
-	err = s.Repo.RegisterUser(model.UserModel{
+	err = s.Repo.RegisterUser(entity.User{
 		UserId:   uuid.NewString(),
 		Email:    email,
 		Password: string(hashedPassword),

@@ -28,42 +28,47 @@ func (p *ProductHandler) RegisterHandler(g *gin.RouterGroup) {
 	rGroup.GET("/", p.GetProductList)
 }
 
-func (p *ProductHandler) GetProductDetail(c *gin.Context) {
-	bookId := c.Param("id")
+func (p *ProductHandler) GetProductDetail(ctx *gin.Context) {
+	bookId := ctx.Param("id")
 	if bookId == "" {
-		c.AbortWithError(http.StatusBadRequest, errors.New("id not found"))
+		ctx.AbortWithError(http.StatusBadRequest, errors.New("id not found"))
 	}
 
-	bookDetail, err := p.Svc.GetBookById(bookId)
+	bookIdValue, err := strconv.Atoi(bookId)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, errors.New("id is not a number"))
+	}
+
+	bookDetail, err := p.Svc.GetBookById(bookIdValue)
 	//TODO fix error response
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		ctx.AbortWithError(http.StatusInternalServerError, errors.New("id is not a number"))
 	}
 
-	c.JSON(http.StatusOK, api.GenericResponseWithData{
+	ctx.JSON(http.StatusOK, api.GenericResponseWithData{
 		Status:  http.StatusOK,
 		Message: "success",
 		Data:    bookDetail,
 	})
 }
 
-func (p *ProductHandler) GetProductList(c *gin.Context) {
-	page, err := strconv.Atoi(c.DefaultQuery("page", "0"))
+func (p *ProductHandler) GetProductList(ctx *gin.Context) {
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", "0"))
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, errors.New("page is not a number"))
+		ctx.AbortWithError(http.StatusBadRequest, errors.New("page is not a number"))
 	}
-	size, err := strconv.Atoi(c.DefaultQuery("size", "0"))
+	size, err := strconv.Atoi(ctx.DefaultQuery("size", "0"))
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
 	}
 
 	bookList, err := p.Svc.GetBookList(page, size)
 	//TODO fix error response
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
 	}
 
-	c.JSON(http.StatusOK, api.GenericResponseWithData{
+	ctx.JSON(http.StatusOK, api.GenericResponseWithData{
 		Status:  http.StatusOK,
 		Message: "success",
 		Data:    bookList,

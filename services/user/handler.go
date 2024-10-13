@@ -29,30 +29,30 @@ func (u *UserHandler) RegisterHandler(r *gin.Engine) {
 	rGroup.POST("/logout", u.LogoutUser)
 }
 
-func (u *UserHandler) RegisterUser(c *gin.Context) {
+func (u *UserHandler) RegisterUser(ctx *gin.Context) {
 	var request apiuser.CreateUserRequest
-	err := c.BindJSON(&request)
+	err := ctx.BindJSON(&request)
 	if err != nil {
 		log.Printf("[register_user][error] failed to read request %s", err.Error())
-		c.AbortWithError(http.StatusBadRequest, err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 	}
 
 	err = u.Svc.RegisterUser(request.Email, request.Password)
 	if err != nil {
 		log.Printf("[register_user][error] failed to register user %s", err.Error())
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}
 
-	c.JSON(http.StatusOK, api.GenericResponse{
+	ctx.JSON(http.StatusOK, api.GenericResponse{
 		Status:  http.StatusOK,
 		Message: "success",
 	})
 }
 
-func (u *UserHandler) LoginUser(c *gin.Context) {
+func (u *UserHandler) LoginUser(ctx *gin.Context) {
 	//TODO
 }
 
-func (u *UserHandler) LogoutUser(c *gin.Context) {
+func (u *UserHandler) LogoutUser(ctx *gin.Context) {
 	//TODO
 }
