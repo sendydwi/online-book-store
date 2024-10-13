@@ -13,7 +13,7 @@ import (
 )
 
 type Service struct {
-	Repo UserRepository
+	Repo UserRepositoryInterface
 }
 
 func (s *Service) RegisterUser(email, password string) error {

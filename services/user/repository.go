@@ -7,6 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserRepositoryInterface interface {
+	RegisterUser(user entity.User) error
+	GetUserByEmail(email string) (*entity.User, error)
+}
 type UserRepository struct {
 	DB *gorm.DB
 }

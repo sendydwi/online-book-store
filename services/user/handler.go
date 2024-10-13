@@ -17,7 +17,7 @@ type UserHandler struct {
 func NewRestHandler(db *gorm.DB) *UserHandler {
 	return &UserHandler{
 		Svc: Service{
-			Repo: UserRepository{DB: db},
+			Repo: &UserRepository{DB: db},
 		},
 	}
 }
