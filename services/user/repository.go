@@ -1,7 +1,6 @@
 package user
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/sendydwi/online-book-store/services/user/entity"
@@ -13,7 +12,8 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) RegisterUser(user entity.User) error {
-	err := r.DB.Create(user).Error
+	fmt.Println(user)
+	err := r.DB.Create(&user).Error
 
 	if err != nil {
 		return err
@@ -27,9 +27,6 @@ func (r *UserRepository) GetUserByEmail(email string) (*entity.User, error) {
 	err := r.DB.Model(entity.User{}).Where("email = ?", email).First(&user).Error
 
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("user with email %s not found", email)
-		}
 		return nil, err
 	}
 	return &user, nil

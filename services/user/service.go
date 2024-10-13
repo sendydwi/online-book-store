@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sendydwi/online-book-store/services/user/entity"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type Service struct {
@@ -16,21 +17,28 @@ type Service struct {
 }
 
 func (s *Service) RegisterUser(email, password string) error {
+	user, err := s.Repo.GetUserByEmail(email)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	if user != nil {
+		return errors.New("email already used")
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return errors.New("failed to encrypt password")
 	}
 
-	user, err := s.Repo.GetUserByEmail(email)
-	// error checking still absurd
-	if user != nil && err != nil {
-		return errors.New("email already used")
-	}
-
 	err = s.Repo.RegisterUser(entity.User{
-		UserId:   uuid.NewString(),
-		Email:    email,
-		Password: string(hashedPassword),
+		UserId:    uuid.NewString(),
+		Email:     email,
+		Password:  string(hashedPassword),
+		CreatedAt: time.Time{},
+		CreatedBy: "application",
+		UpdatedAt: time.Time{},
+		UpdatedBy: "application",
 	})
 
 	if err != nil {

@@ -25,7 +25,7 @@ func NewRestHandler(db *gorm.DB) *OrderHandler {
 			DB: db,
 		},
 	}
-	
+
 	return &OrderHandler{
 		Svc: Service{
 			Repo: OrderRepository{DB: db},
@@ -40,7 +40,7 @@ func NewRestHandler(db *gorm.DB) *OrderHandler {
 	}
 }
 
-func (o *OrderHandler) RegisterHandler(g *gin.Engine) {
+func (o *OrderHandler) RegisterHandler(g *gin.RouterGroup) {
 	rGroup := g.Group("v1/orders")
 	rGroup.POST("/", utils.CheckAuth, o.CreateOrder)
 	rGroup.GET("/:id", utils.CheckAuth, o.GetOrderDetail)
@@ -53,6 +53,7 @@ func (o *OrderHandler) CreateOrder(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("[create_order][error] failed to read request, error: %s", err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 
 	userId := ctx.GetString("userId")
@@ -60,6 +61,7 @@ func (o *OrderHandler) CreateOrder(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("[create_order][error] failed to create order, error: %s", err.Error())
 		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, api.GenericResponse{
@@ -72,6 +74,7 @@ func (o *OrderHandler) GetOrderDetail(ctx *gin.Context) {
 	orderId := ctx.Param("id")
 	if orderId == "" {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("id not found"))
+		return
 	}
 
 	userId := ctx.GetString("userId")
@@ -79,6 +82,7 @@ func (o *OrderHandler) GetOrderDetail(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("[get_order_history][error] failed to create order, error: %s", err.Error())
 		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, api.GenericResponseWithData{
@@ -92,10 +96,12 @@ func (o *OrderHandler) GetOrderHistories(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", "0"))
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("page is not a number"))
+		return
 	}
 	size, err := strconv.Atoi(ctx.DefaultQuery("size", "0"))
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		return
 	}
 
 	userId := ctx.GetString("userId")
@@ -103,6 +109,7 @@ func (o *OrderHandler) GetOrderHistories(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("[get_order_history][error] failed to create order, error: %s", err.Error())
 		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, api.GenericResponseWithData{

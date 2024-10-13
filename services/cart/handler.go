@@ -29,9 +29,9 @@ func NewRestHandler(db *gorm.DB) *CartHandler {
 	}
 }
 
-func (c *CartHandler) RegisterHandler(g *gin.Engine) {
+func (c *CartHandler) RegisterHandler(g *gin.RouterGroup) {
 	rGroup := g.Group("v1/carts")
-	rGroup.POST("/update", utils.CheckAuth, c.UpdateCartItem)
+	rGroup.POST("/", utils.CheckAuth, c.UpdateCartItem)
 	rGroup.GET("/", utils.CheckAuth, c.GetCart)
 }
 
@@ -41,6 +41,7 @@ func (c *CartHandler) UpdateCartItem(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("[update_cart_item][error] failed to read request %s", err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 
 	userId := ctx.GetString("userId")
@@ -48,6 +49,7 @@ func (c *CartHandler) UpdateCartItem(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("[update_cart_item][error] failed to update cart item %s", err.Error())
 		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, api.GenericResponse{
@@ -62,6 +64,7 @@ func (c *CartHandler) GetCart(ctx *gin.Context) {
 	if err != nil {
 		log.Printf("[update_cart_item][error] failed to update cart item %s", err.Error())
 		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, api.GenericResponseWithData{

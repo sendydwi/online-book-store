@@ -30,7 +30,7 @@ func main() {
 		})
 	})
 
-	r.Run(":8182")
+	r.Run(":80")
 }
 
 func RegisterService(r *gin.Engine, db *gorm.DB) {
@@ -42,6 +42,6 @@ func RegisterService(r *gin.Engine, db *gorm.DB) {
 	handlers := []api.Handler{userHandler, productHandler, cartHandler, orderHandler}
 
 	for _, handler := range handlers {
-		handler.RegisterHandler(r)
+		handler.RegisterHandler(r.Group("api/"))
 	}
 }

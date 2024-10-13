@@ -2,6 +2,7 @@ package order
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	apiorder "github.com/sendydwi/online-book-store/api/order"
@@ -29,9 +30,13 @@ func (s *Service) CreateOrder(userId string, request apiorder.CreateOrderRequest
 		Status:          entity.OrderStatusWaitingForPayment,
 		TotalPrice:      cartItems.TotalPrice,
 		DeliveryAddress: request.Address,
+		CreatedAt:       time.Time{},
+		CreatedBy:       "application",
+		UpdatedAt:       time.Time{},
+		UpdatedBy:       "application",
 	}
 
-	orderItems := []entity.OrderItem{}
+	orderItems := []*entity.OrderItem{}
 
 	for _, item := range cartItems.CartItems {
 		product, err := s.ProductSvc.GetProductById(item.ProductId)
@@ -47,13 +52,23 @@ func (s *Service) CreateOrder(userId string, request apiorder.CreateOrderRequest
 			SubtotalPrice:   item.SubtotalPrice,
 			Quantity:        item.Quantity,
 			ProductSnapshot: snapshot,
+			CreatedAt:       time.Time{},
+			CreatedBy:       "application",
+			UpdatedAt:       time.Time{},
+			UpdatedBy:       "application",
 		}
 
-		orderItems = append(orderItems, orderItem)
+		orderItems = append(orderItems, &orderItem)
 	}
 
 	err = s.Repo.CreateOrder(order, orderItems)
 	if err != nil {
+		return err
+	}
+
+	err = s.CartSvc.UpdateCartStatusToOrdered(userId)
+	if err != nil {
+		s.Repo.DeleteOrder(order)
 		return err
 	}
 

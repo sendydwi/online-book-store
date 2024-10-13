@@ -33,7 +33,7 @@ func (r *CartRepository) CreateActiveCart(cart entity.Cart) error {
 func (r *CartRepository) UpdateCartItem(cartItem entity.CartItem) error {
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
 		var existingCartItem entity.CartItem
-		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("cart_id = ? AND product_id = ?", cartItem.CartId, cartItem.ProductId).First(existingCartItem).Error
+		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("cart_id = ? AND product_id = ?", cartItem.CartId, cartItem.ProductId).First(&existingCartItem).Error
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
@@ -42,7 +42,7 @@ func (r *CartRepository) UpdateCartItem(cartItem entity.CartItem) error {
 			cartItem.CartItemId = existingCartItem.CartItemId
 		}
 
-		if err := tx.Save(cartItem).Error; err != nil {
+		if err := tx.Save(&cartItem).Error; err != nil {
 			return err
 		}
 
@@ -63,4 +63,13 @@ func (r *CartRepository) GetCartItemByCartId(cartId string) ([]entity.CartItem, 
 		return nil, err
 	}
 	return cartItems, nil
+}
+
+func (r *CartRepository) UpdateCartStatus(cart entity.Cart) error {
+	err := r.DB.Save(&cart).Error
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -9,22 +9,22 @@ type ProductRepository struct {
 	DB *gorm.DB
 }
 
-func (p *ProductRepository) GetProductById(bookId int) (*entity.Product, error) {
-	var book entity.Product
-	err := p.DB.Where("book_id = ? AND is_active = ?", bookId, true).First(book).Error
+func (p *ProductRepository) GetProductById(productId int) (*entity.Product, error) {
+	var product entity.Product
+	err := p.DB.Where("product_id = ? AND is_active = ?", productId, true).First(&product).Error
 
 	if err != nil {
 		return nil, err
 	}
-	return &book, nil
+	return &product, nil
 }
 
 func (p *ProductRepository) GetProductList(page, size int) (*[]entity.Product, error) {
-	var books []entity.Product
-	err := p.DB.Offset((page - 1) * size).Limit(size).Find(books).Error
+	var products []entity.Product
+	err := p.DB.Offset((page - 1) * size).Limit(size).Find(&products).Error
 
 	if err != nil {
 		return nil, err
 	}
-	return &books, nil
+	return &products, nil
 }

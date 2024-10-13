@@ -22,50 +22,56 @@ func NewRestHandler(db *gorm.DB) *ProductHandler {
 	}
 }
 
-func (p *ProductHandler) RegisterHandler(g *gin.Engine) {
-	rGroup := g.Group("v1/books")
+func (p *ProductHandler) RegisterHandler(g *gin.RouterGroup) {
+	rGroup := g.Group("v1/products")
 	rGroup.GET("/:id", p.GetProductDetail)
 	rGroup.GET("/", p.GetProductList)
 }
 
 func (p *ProductHandler) GetProductDetail(ctx *gin.Context) {
-	bookId := ctx.Param("id")
-	if bookId == "" {
+	productId := ctx.Param("id")
+	if productId == "" {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("id not found"))
+		return
 	}
 
-	bookIdValue, err := strconv.Atoi(bookId)
+	productIdValue, err := strconv.Atoi(productId)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("id is not a number"))
+		return
 	}
 
-	bookDetail, err := p.Svc.GetProductById(bookIdValue)
+	productDetail, err := p.Svc.GetProductById(productIdValue)
 	//TODO fix error response
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, errors.New("id is not a number"))
+		return
 	}
 
 	ctx.JSON(http.StatusOK, api.GenericResponseWithData{
 		Status:  http.StatusOK,
 		Message: "success",
-		Data:    bookDetail,
+		Data:    productDetail,
 	})
 }
 
 func (p *ProductHandler) GetProductList(ctx *gin.Context) {
-	page, err := strconv.Atoi(ctx.DefaultQuery("page", "0"))
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("page is not a number"))
+		return
 	}
-	size, err := strconv.Atoi(ctx.DefaultQuery("size", "0"))
+	size, err := strconv.Atoi(ctx.DefaultQuery("size", "10"))
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		return
 	}
 
 	bookList, err := p.Svc.GetProductList(page, size)
 	//TODO fix error response
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		return
 	}
 
 	ctx.JSON(http.StatusOK, api.GenericResponseWithData{

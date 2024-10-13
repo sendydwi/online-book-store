@@ -1,6 +1,9 @@
 package entity
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -40,6 +43,19 @@ type ProductSnapshot struct {
 	Description    string    `json:"description"`
 	AvailableStock int       `json:"available_stock"`
 	Price          float32   `json:"price"`
+}
+
+func (p *ProductSnapshot) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("Scan error: expected []byte, got %T", value)
+	}
+
+	return json.Unmarshal(bytes, p)
+}
+
+func (p ProductSnapshot) Value() (driver.Value, error) {
+	return json.Marshal(p)
 }
 
 const (

@@ -3,6 +3,7 @@ package cart
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	apicart "github.com/sendydwi/online-book-store/api/cart"
@@ -26,6 +27,10 @@ func (s *Service) UpdateCartItem(updateRequest apicart.CartUpdateRequest, userId
 		CartId:    cart.CartId,
 		ProductId: updateRequest.ProductId,
 		Quantity:  updateRequest.Quantity,
+		CreatedAt: time.Time{},
+		CreatedBy: "application",
+		UpdatedAt: time.Time{},
+		UpdatedBy: "application",
 	}
 
 	err = s.Repo.UpdateCartItem(cartItemUpdate)
@@ -40,9 +45,13 @@ func (s *Service) getCurrentCart(userId string) (*entity.Cart, error) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			cart = &entity.Cart{
-				CartId: uuid.NewString(),
-				UserId: userId,
-				Status: entity.CartStatusActive,
+				CartId:    uuid.NewString(),
+				UserId:    userId,
+				Status:    entity.CartStatusActive,
+				CreatedAt: time.Time{},
+				CreatedBy: "application",
+				UpdatedAt: time.Time{},
+				UpdatedBy: "application",
 			}
 			err := s.Repo.CreateActiveCart(*cart)
 			if err != nil {
@@ -53,7 +62,7 @@ func (s *Service) getCurrentCart(userId string) (*entity.Cart, error) {
 		}
 	}
 
-	return cart, err
+	return cart, nil
 }
 
 func (s *Service) GetCartItem(userId string) (*apicart.GetCartResponse, error) {
@@ -105,4 +114,20 @@ func (s *Service) GetCartItem(userId string) (*apicart.GetCartResponse, error) {
 		CartItems:  cartItemResponse,
 		TotalPrice: totalPrice,
 	}, nil
+}
+
+func (s *Service) UpdateCartStatusToOrdered(userId string) error {
+	cart, err := s.getCurrentCart(userId)
+	if err != nil {
+		return err
+	}
+
+	cart.Status = entity.CartStatusOrdered
+
+	err = s.Repo.UpdateCartStatus(*cart)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

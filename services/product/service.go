@@ -13,29 +13,29 @@ type Service struct {
 	Repo ProductRepository
 }
 
-func (s *Service) GetProductById(bookId int) (*apiproduct.ProductResponse, error) {
-	book, err := s.Repo.GetProductById(bookId)
+func (s *Service) GetProductById(productId int) (*apiproduct.ProductResponse, error) {
+	product, err := s.Repo.GetProductById(productId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("book id %v not found", bookId)
+			return nil, fmt.Errorf("book id %v not found", productId)
 		}
 		return nil, err
 	}
-	bookResponse := adapter.ProductModelToProductResponse(*book)
+	bookResponse := adapter.ProductModelToProductResponse(*product)
 
 	return &bookResponse, nil
 }
 
 func (s *Service) GetProductList(page, size int) (*apiproduct.ProductListResponse, error) {
-	books, err := s.Repo.GetProductList(page, size)
+	products, err := s.Repo.GetProductList(page, size)
 
 	if err != nil {
 		return nil, err
 	}
 
-	bookResponseList := adapter.ProductModelListToProductResponseList(*books)
+	productResponseList := adapter.ProductModelListToProductResponseList(*products)
 	response := apiproduct.ProductListResponse{
-		ProductList: bookResponseList,
+		ProductList: productResponseList,
 		Page:        page,
 		Size:        size,
 	}
