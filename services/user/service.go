@@ -2,7 +2,10 @@ package user
 
 import (
 	"errors"
+	"os"
+	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/sendydwi/online-book-store/services/user/entity"
 	"golang.org/x/crypto/bcrypt"
@@ -35,4 +38,27 @@ func (s *Service) RegisterUser(email, password string) error {
 	}
 
 	return nil
+}
+
+func (s *Service) Login(email, password string) (string, error) {
+	user, err := s.Repo.GetUserByEmail(email)
+	if err != nil {
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return "", err
+	}
+
+	generateToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  user.UserId,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	token, err := generateToken.SignedString([]byte(os.Getenv("SECRET")))
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

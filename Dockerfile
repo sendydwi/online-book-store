@@ -1,11 +1,18 @@
 # Stage 1: Build the application
-FROM golang:1.18 AS builder
+FROM golang:1.23 AS builder
 WORKDIR /app
 COPY . .
-RUN go build -o bookstore
+RUN go mod tidy
+RUN go build -o bin ./cmd/main.go
+RUN chmod +x bin
+RUN echo $(ls -l)
 
-# Stage 2: Create a lightweight runtime image
-FROM alpine:latest
-WORKDIR /root/
-COPY --from=builder /app/bookstore .
-CMD ["./myapp"]
+
+CMD ["./bin"]
+
+# # Stage 2: Create a lightweight runtime image
+# FROM alpine:latest
+# WORKDIR /app
+# COPY --from=builder /app/bin bin
+# COPY --from=builder /app/.env .env
+

@@ -1,45 +1,56 @@
 package utils
 
 import (
-	"fmt"
+	"net/http"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
 
-var secretKey = []byte("secretpassword")
+func CheckAuth(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
 
-// GenerateToken generates a JWT token with the user ID as part of the claims
-func GenerateToken(userID uint) (string, error) {
-	claims := jwt.MapClaims{}
-	claims["user_id"] = userID
-	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is missing"})
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secretKey)
-}
+	authToken := strings.Split(authHeader, " ")
+	if len(authToken) != 2 || authToken[0] != "Bearer" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-// VerifyToken verifies a token JWT validate
-func VerifyToken(tokenString string) (jwt.MapClaims, error) {
-	// Parse the token
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Check the signing method
-		if _, ok := token.Method.(*jwt.SigningMethodEd25519); !ok {
-			return nil, fmt.Errorf("invalid signing method")
-		}
-
-		return secretKey, nil
+	tokenString := authToken[1]
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("SECRET")), nil
 	})
 
-	// Check for errors
-	if err != nil {
-		return nil, err
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 
-	// Validate the token
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims, nil
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.Abort()
+		return
 	}
 
-	return nil, fmt.Errorf("invalid token")
+	if float64(time.Now().Unix()) > claims["exp"].(float64) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	c.Set("userId", claims["id"])
+
+	c.Next()
 }

@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sendydwi/online-book-store/api"
 	apicart "github.com/sendydwi/online-book-store/api/cart"
+	"github.com/sendydwi/online-book-store/commons/utils"
+	"github.com/sendydwi/online-book-store/services/product"
 	"gorm.io/gorm"
 )
 
@@ -18,25 +20,31 @@ func NewRestHandler(db *gorm.DB) *CartHandler {
 	return &CartHandler{
 		Svc: Service{
 			Repo: CartRepository{DB: db},
+			ProductSvc: product.Service{
+				Repo: product.ProductRepository{
+					DB: db,
+				},
+			},
 		},
 	}
 }
 
-func (c *CartHandler) RegisterHandler(r *gin.Engine) {
-	rGroup := r.Group("v1/carts")
-	rGroup.POST("/update", c.UpdateCartItem)
-	rGroup.GET("/", c.GetCart)
+func (c *CartHandler) RegisterHandler(g *gin.Engine) {
+	rGroup := g.Group("v1/carts")
+	rGroup.POST("/update", utils.CheckAuth, c.UpdateCartItem)
+	rGroup.GET("/", utils.CheckAuth, c.GetCart)
 }
 
 func (c *CartHandler) UpdateCartItem(ctx *gin.Context) {
 	var request apicart.CartUpdateRequest
-	err := ctx.BindJSON(&request)
+	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		log.Printf("[update_cart_item][error] failed to read request %s", err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
 	}
 
-	err = c.Svc.UpdateCartItem(request, "")
+	userId := ctx.GetString("userId")
+	err = c.Svc.UpdateCartItem(request, userId)
 	if err != nil {
 		log.Printf("[update_cart_item][error] failed to update cart item %s", err.Error())
 		ctx.AbortWithError(http.StatusInternalServerError, err)
@@ -49,7 +57,8 @@ func (c *CartHandler) UpdateCartItem(ctx *gin.Context) {
 }
 
 func (c *CartHandler) GetCart(ctx *gin.Context) {
-	cartItemResponse, err := c.Svc.GetCartItem("")
+	userId := ctx.GetString("userId")
+	cartItemResponse, err := c.Svc.GetCartItem(userId)
 	if err != nil {
 		log.Printf("[update_cart_item][error] failed to update cart item %s", err.Error())
 		ctx.AbortWithError(http.StatusInternalServerError, err)

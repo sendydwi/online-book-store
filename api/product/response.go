@@ -3,12 +3,12 @@ package apiproduct
 import "time"
 
 type ProductResponse struct {
-	BookDetail BookDetail `json:"book_detail"`
-	Stock      int        `json:"stock"`
-	Price      float32    `json:"price"`
+	ProductDetail ProductDetail `json:"book_detail"`
+	Stock         int           `json:"stock"`
+	Price         float32       `json:"price"`
 }
 
-type BookDetail struct {
+type ProductDetail struct {
 	ProductId   int       `json:"product_id"`
 	ISBN        string    `json:"isbn"`
 	Title       string    `json:"title"`

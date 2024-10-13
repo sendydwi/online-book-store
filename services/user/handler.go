@@ -22,16 +22,15 @@ func NewRestHandler(db *gorm.DB) *UserHandler {
 	}
 }
 
-func (u *UserHandler) RegisterHandler(r *gin.Engine) {
-	rGroup := r.Group("v1/users")
+func (u *UserHandler) RegisterHandler(g *gin.Engine) {
+	rGroup := g.Group("v1/users")
 	rGroup.POST("/register", u.RegisterUser)
 	rGroup.POST("/login", u.LoginUser)
-	rGroup.POST("/logout", u.LogoutUser)
 }
 
 func (u *UserHandler) RegisterUser(ctx *gin.Context) {
 	var request apiuser.CreateUserRequest
-	err := ctx.BindJSON(&request)
+	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		log.Printf("[register_user][error] failed to read request %s", err.Error())
 		ctx.AbortWithError(http.StatusBadRequest, err)
@@ -50,9 +49,20 @@ func (u *UserHandler) RegisterUser(ctx *gin.Context) {
 }
 
 func (u *UserHandler) LoginUser(ctx *gin.Context) {
-	//TODO
-}
+	var request apiuser.CreateUserRequest
+	err := ctx.ShouldBindJSON(&request)
+	if err != nil {
+		log.Printf("[register_user][error] failed to read request %s", err.Error())
+		ctx.AbortWithError(http.StatusBadRequest, err)
+	}
 
-func (u *UserHandler) LogoutUser(ctx *gin.Context) {
-	//TODO
+	token, err := u.Svc.Login(request.Email, request.Password)
+	if err != nil {
+		log.Printf("[register_user][error] failed to read request %s", err.Error())
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+	}
+
+	ctx.JSON(http.StatusOK, apiuser.LoginResponse{
+		Token: token,
+	})
 }

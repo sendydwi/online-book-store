@@ -11,11 +11,11 @@ import (
 
 func Init() *gorm.DB {
 	databaseURL := fmt.Sprintf(
-		"host=%s user=%s password=%s databasename=%s port=%s",
+		"host=%s user=%s password=%s dbname=%s port=%s",
 		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_database"),
+		os.Getenv("POSTGRES_DB"),
 		os.Getenv("POSTGRES_PORT"),
 	)
 

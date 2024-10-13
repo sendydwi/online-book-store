@@ -22,7 +22,7 @@ func NewRestHandler(db *gorm.DB) *ProductHandler {
 	}
 }
 
-func (p *ProductHandler) RegisterHandler(g *gin.RouterGroup) {
+func (p *ProductHandler) RegisterHandler(g *gin.Engine) {
 	rGroup := g.Group("v1/books")
 	rGroup.GET("/:id", p.GetProductDetail)
 	rGroup.GET("/", p.GetProductList)
@@ -39,7 +39,7 @@ func (p *ProductHandler) GetProductDetail(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("id is not a number"))
 	}
 
-	bookDetail, err := p.Svc.GetBookById(bookIdValue)
+	bookDetail, err := p.Svc.GetProductById(bookIdValue)
 	//TODO fix error response
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, errors.New("id is not a number"))
@@ -62,7 +62,7 @@ func (p *ProductHandler) GetProductList(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
 	}
 
-	bookList, err := p.Svc.GetBookList(page, size)
+	bookList, err := p.Svc.GetProductList(page, size)
 	//TODO fix error response
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))

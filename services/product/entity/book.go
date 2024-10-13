@@ -2,8 +2,8 @@ package entity
 
 import "time"
 
-type Book struct {
-	ID             int       `json:"id" gorm:"primary_key"`
+type Product struct {
+	ProductId      int       `json:"product_id" gorm:"primary_key"`
 	ISBN           string    `json:"isbn" gorm:"unique"`
 	Title          string    `json:"title"`
 	Subtitle       string    `json:"subtitle"`
@@ -19,6 +19,6 @@ type Book struct {
 	Price          float32   `json:"price"`
 	CreatedAt      time.Time `json:"created_at"`
 	CreatedBy      string    `json:"created_by"`
-	LastUpdatedAt  time.Time `json:"last_updated_at"`
-	LastUpdatedBy  time.Time `json:"last_updated_by"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	UpdatedBy      string    `json:"updated_by"`
 }
