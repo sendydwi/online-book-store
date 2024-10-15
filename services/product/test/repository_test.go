@@ -18,6 +18,7 @@ func Test_GetProductById_Repository(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to set up mock db: %v", err)
 	}
+
 	repo := &product.ProductRepository{DB: mockDB}
 
 	productId := 1

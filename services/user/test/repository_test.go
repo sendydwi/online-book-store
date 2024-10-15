@@ -34,7 +34,7 @@ func Test_RegisterUser_Repository(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec("INSERT INTO \"users\"").
+		mock.ExpectExec(`INSERT INTO "users"`).
 			WithArgs(
 				user.UserId,
 				user.Email,

@@ -19,12 +19,12 @@ type OrderRepository struct {
 
 func (r *OrderRepository) CreateOrder(order entity.Order, orderItem []*entity.OrderItem) error {
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
-		err := tx.Save(&order).Error
+		err := tx.Create(&order).Error
 		if err != nil {
 			return err
 		}
 
-		err = tx.Save(orderItem).Error
+		err = tx.Create(orderItem).Error
 		if err != nil {
 			return err
 		}
@@ -40,13 +40,19 @@ func (r *OrderRepository) CreateOrder(order entity.Order, orderItem []*entity.Or
 }
 
 func (r *OrderRepository) DeleteOrder(order entity.Order) error {
+	err := r.DB.Transaction(func(tx *gorm.DB) error {
+		err := tx.Delete(&entity.OrderItem{}, "order_id = ?", order.OrderId).Error
+		if err != nil {
+			return err
+		}
 
-	err := r.DB.Delete(&entity.OrderItem{}, "order_id = ?", order.OrderId).Error
-	if err != nil {
-		return err
-	}
+		err = tx.Delete(&entity.Order{}, "order_id = ?", order.OrderId).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
-	err = r.DB.Delete(&entity.Order{}, "order_id = ?", order.OrderId).Error
 	if err != nil {
 		return err
 	}

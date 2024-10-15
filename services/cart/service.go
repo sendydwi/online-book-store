@@ -14,7 +14,7 @@ import (
 
 type CartServiceInterface interface {
 	UpdateCartItem(updateRequest apicart.CartUpdateRequest, userId string) error
-	getCurrentCart(userId string) (*entity.Cart, error)
+	GetCurrentCart(userId string) (*entity.Cart, error)
 	GetCartItem(userId string) (*apicart.GetCartResponse, error)
 	UpdateCartStatusToOrdered(userId string) error
 }
@@ -25,7 +25,7 @@ type Service struct {
 }
 
 func (s *Service) UpdateCartItem(updateRequest apicart.CartUpdateRequest, userId string) error {
-	cart, err := s.getCurrentCart(userId)
+	cart, err := s.GetCurrentCart(userId)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (s *Service) UpdateCartItem(updateRequest apicart.CartUpdateRequest, userId
 	return nil
 }
 
-func (s *Service) getCurrentCart(userId string) (*entity.Cart, error) {
+func (s *Service) GetCurrentCart(userId string) (*entity.Cart, error) {
 	cart, err := s.Repo.GetCurrentActiveCart(userId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -73,7 +73,7 @@ func (s *Service) getCurrentCart(userId string) (*entity.Cart, error) {
 }
 
 func (s *Service) GetCartItem(userId string) (*apicart.GetCartResponse, error) {
-	cart, err := s.getCurrentCart(userId)
+	cart, err := s.GetCurrentCart(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -90,32 +90,43 @@ func (s *Service) GetCartItem(userId string) (*apicart.GetCartResponse, error) {
 		return nil, err
 	}
 
-	var wg sync.WaitGroup
+	wg := sync.WaitGroup{}
+	wg.Add(len(cartItems))
+	queue := make(chan *apicart.CartItemResponse)
 	cartItemResponse := []apicart.CartItemResponse{}
+	totalPrice := float32(0)
+
 	for _, item := range cartItems {
-		wg.Add(1)
 		go func(item entity.CartItem) {
 			defer wg.Done()
 			book, err := s.ProductSvc.GetProductById(item.ProductId)
 			if err != nil {
+				queue <- nil
 				return
 			}
 
-			cartItemResponse = append(cartItemResponse, apicart.CartItemResponse{
+			queue <- &apicart.CartItemResponse{
 				ProductId:     item.ProductId,
 				Quantity:      item.Quantity,
 				Price:         book.Price,
 				SubtotalPrice: book.Price * float32(item.Quantity),
-			})
-
+			}
 		}(item)
 	}
-	wg.Wait()
 
-	totalPrice := float32(0)
-	for _, item := range cartItemResponse {
-		totalPrice += item.SubtotalPrice
-	}
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for item := range queue {
+			if item != nil {
+				cartItemResponse = append(cartItemResponse, *item)
+				totalPrice += item.SubtotalPrice
+			}
+		}
+	}()
+	wg.Wait()
+	close(queue)
+	<-done
 
 	return &apicart.GetCartResponse{
 		CartItems:  cartItemResponse,
@@ -124,7 +135,7 @@ func (s *Service) GetCartItem(userId string) (*apicart.GetCartResponse, error) {
 }
 
 func (s *Service) UpdateCartStatusToOrdered(userId string) error {
-	cart, err := s.getCurrentCart(userId)
+	cart, err := s.GetCurrentCart(userId)
 	if err != nil {
 		return err
 	}

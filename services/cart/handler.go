@@ -13,12 +13,12 @@ import (
 )
 
 type CartHandler struct {
-	Svc Service
+	Svc CartServiceInterface
 }
 
 func NewRestHandler(db *gorm.DB) *CartHandler {
 	return &CartHandler{
-		Svc: Service{
+		Svc: &Service{
 			Repo: &CartRepository{DB: db},
 			ProductSvc: &product.Service{
 				Repo: &product.ProductRepository{
@@ -38,17 +38,25 @@ func (c *CartHandler) RegisterHandler(g *gin.RouterGroup) {
 func (c *CartHandler) UpdateCartItem(ctx *gin.Context) {
 	var request apicart.CartUpdateRequest
 	err := ctx.ShouldBindJSON(&request)
+
 	if err != nil {
 		log.Printf("[update_cart_item][error] failed to read request %s", err.Error())
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	userId := ctx.GetString("userId")
 	err = c.Svc.UpdateCartItem(request, userId)
+
 	if err != nil {
 		log.Printf("[update_cart_item][error] failed to update cart item %s", err.Error())
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -61,9 +69,13 @@ func (c *CartHandler) UpdateCartItem(ctx *gin.Context) {
 func (c *CartHandler) GetCart(ctx *gin.Context) {
 	userId := ctx.GetString("userId")
 	cartItemResponse, err := c.Svc.GetCartItem(userId)
+
 	if err != nil {
-		log.Printf("[update_cart_item][error] failed to update cart item %s", err.Error())
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		log.Printf("[update_cart_item][error] failed to get cart %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
