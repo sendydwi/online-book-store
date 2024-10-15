@@ -12,6 +12,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserServiceInterface interface {
+	RegisterUser(email, password string) error
+	Login(email, password string) (string, error)
+}
+
 type Service struct {
 	Repo UserRepositoryInterface
 }
@@ -23,12 +28,12 @@ func (s *Service) RegisterUser(email, password string) error {
 	}
 
 	if user != nil {
-		return errors.New("email already used")
+		return ErrEmailAlreadyUsed
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return errors.New("failed to encrypt password")
+		return err
 	}
 
 	err = s.Repo.RegisterUser(entity.User{
@@ -51,11 +56,14 @@ func (s *Service) RegisterUser(email, password string) error {
 func (s *Service) Login(email, password string) (string, error) {
 	user, err := s.Repo.GetUserByEmail(email)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", ErrUserNotExist
+		}
 		return "", err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", err
+		return "", ErrWrongPassword
 	}
 
 	generateToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -11,12 +12,12 @@ import (
 )
 
 type UserHandler struct {
-	Svc Service
+	Svc UserServiceInterface
 }
 
 func NewRestHandler(db *gorm.DB) *UserHandler {
 	return &UserHandler{
-		Svc: Service{
+		Svc: &Service{
 			Repo: &UserRepository{DB: db},
 		},
 	}
@@ -40,7 +41,19 @@ func (u *UserHandler) RegisterUser(ctx *gin.Context) {
 	err = u.Svc.RegisterUser(request.Email, request.Password)
 	if err != nil {
 		log.Printf("[register_user][error] failed to register user %s", err.Error())
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+
+		switch {
+		case errors.Is(err, ErrEmailAlreadyUsed):
+			ctx.JSON(http.StatusUnprocessableEntity, api.GenericResponse{
+				Status:  http.StatusUnprocessableEntity,
+				Message: "email already used",
+			})
+		default:
+			ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
 		return
 	}
 
@@ -55,18 +68,37 @@ func (u *UserHandler) LoginUser(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		log.Printf("[register_user][error] failed to read request %s", err.Error())
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	token, err := u.Svc.Login(request.Email, request.Password)
 	if err != nil {
-		log.Printf("[register_user][error] failed to read request %s", err.Error())
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		log.Printf("[register_user][error] failed to login with email %s : %s", request.Email, err.Error())
+
+		switch {
+		case errors.Is(err, ErrUserNotExist), errors.Is(err, ErrWrongPassword):
+			ctx.JSON(http.StatusUnprocessableEntity, api.GenericResponse{
+				Status:  http.StatusUnprocessableEntity,
+				Message: "wrong email or password",
+			})
+		default:
+			ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
 		return
 	}
 
-	ctx.JSON(http.StatusOK, apiuser.LoginResponse{
-		Token: token,
+	ctx.JSON(http.StatusOK, api.GenericResponseWithData{
+		Status:  http.StatusOK,
+		Message: "success",
+		Data: apiuser.LoginResponse{
+			Token: token,
+		},
 	})
 }

@@ -7,7 +7,7 @@ package mock_user
 import (
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 	entity "github.com/sendydwi/online-book-store/services/user/entity"
 )
 
