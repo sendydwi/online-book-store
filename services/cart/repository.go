@@ -8,6 +8,14 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type CartRepositoryInterface interface {
+	GetCurrentActiveCart(userId string) (*entity.Cart, error)
+	CreateActiveCart(cart entity.Cart) error
+	UpdateCartItem(cartItem entity.CartItem) error
+	GetCartItemByCartId(cartId string) ([]entity.CartItem, error)
+	UpdateCartStatus(cart entity.Cart) error
+}
+
 type CartRepository struct {
 	DB *gorm.DB
 }

@@ -5,6 +5,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type ProductRepositoryInterface interface {
+	GetProductById(productId int) (*entity.Product, error)
+	GetProductList(page, size int) (*[]entity.Product, error)
+}
+
 type ProductRepository struct {
 	DB *gorm.DB
 }

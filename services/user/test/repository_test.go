@@ -15,7 +15,6 @@ import (
 )
 
 func Test_RegisterUser_Repository(t *testing.T) {
-	// Set up the mock database
 	db, mock, err := testutils.MockDB()
 	if err != nil {
 		t.Fatalf("failed to set up mock db: %v", err)
@@ -72,7 +71,6 @@ func Test_RegisterUser_Repository(t *testing.T) {
 }
 
 func Test_GetUserByEmai_Repository(t *testing.T) {
-	// Set up the mock database
 	db, mock, err := testutils.MockDB()
 	if err != nil {
 		t.Fatalf("failed to set up mock db: %v", err)

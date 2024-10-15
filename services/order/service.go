@@ -12,10 +12,16 @@ import (
 	"github.com/sendydwi/online-book-store/services/product"
 )
 
+type OrderServiceInterface interface {
+	CreateOrder(userId string, request apiorder.CreateOrderRequest) error
+	GetOrderDetail(orderid, userId string) (*apiorder.GetOrderDetailResponse, error)
+	GetOrderHistories(userId string, page, limit int) (*apiorder.GetOrderHistoryResponse, error)
+}
+
 type Service struct {
 	Repo       OrderRepository
-	CartSvc    cart.Service
-	ProductSvc product.Service
+	CartSvc    cart.CartServiceInterface
+	ProductSvc product.ProductServiceInterface
 }
 
 func (s *Service) CreateOrder(userId string, request apiorder.CreateOrderRequest) error {

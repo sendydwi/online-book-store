@@ -5,7 +5,7 @@ import (
 
 	"github.com/sendydwi/online-book-store/services/user"
 	"github.com/sendydwi/online-book-store/services/user/entity"
-	mock_user "github.com/sendydwi/online-book-store/services/user/mocks"
+	mock_user "github.com/sendydwi/online-book-store/services/user/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"gorm.io/gorm"

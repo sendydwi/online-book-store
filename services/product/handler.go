@@ -2,6 +2,8 @@ package product
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -11,13 +13,13 @@ import (
 )
 
 type ProductHandler struct {
-	Svc Service
+	Svc ProductServiceInterface
 }
 
 func NewRestHandler(db *gorm.DB) *ProductHandler {
 	return &ProductHandler{
-		Svc: Service{
-			Repo: ProductRepository{DB: db},
+		Svc: &Service{
+			Repo: &ProductRepository{DB: db},
 		},
 	}
 }
@@ -31,20 +33,38 @@ func (p *ProductHandler) RegisterHandler(g *gin.RouterGroup) {
 func (p *ProductHandler) GetProductDetail(ctx *gin.Context) {
 	productId := ctx.Param("id")
 	if productId == "" {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id not found"))
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: "id param not found",
+		})
 		return
 	}
 
 	productIdValue, err := strconv.Atoi(productId)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id is not a number"))
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: "id is not a number",
+		})
 		return
 	}
 
 	productDetail, err := p.Svc.GetProductById(productIdValue)
 	//TODO fix error response
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, errors.New("id is not a number"))
+		log.Printf("[get_product_detail][error] failed to get product with id %v with error: %s", productIdValue, err.Error())
+		switch {
+		case errors.Is(err, ErrProductNotFound):
+			ctx.JSON(http.StatusNotFound, api.GenericResponse{
+				Status:  http.StatusNotFound,
+				Message: fmt.Sprintf("product with id %v not found", productIdValue),
+			})
+		default:
+			ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
 		return
 	}
 
@@ -58,19 +78,29 @@ func (p *ProductHandler) GetProductDetail(ctx *gin.Context) {
 func (p *ProductHandler) GetProductList(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("page is not a number"))
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: "page is not a number",
+		})
 		return
 	}
 	size, err := strconv.Atoi(ctx.DefaultQuery("size", "10"))
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: "size is not a number",
+		})
 		return
 	}
 
 	bookList, err := p.Svc.GetProductList(page, size)
 	//TODO fix error response
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		log.Printf("[get_product_detail][error] failed to get product list with error: %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 

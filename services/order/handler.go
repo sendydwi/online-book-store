@@ -21,7 +21,7 @@ type OrderHandler struct {
 
 func NewRestHandler(db *gorm.DB) *OrderHandler {
 	productSvc := product.Service{
-		Repo: product.ProductRepository{
+		Repo: &product.ProductRepository{
 			DB: db,
 		},
 	}
@@ -29,13 +29,13 @@ func NewRestHandler(db *gorm.DB) *OrderHandler {
 	return &OrderHandler{
 		Svc: Service{
 			Repo: OrderRepository{DB: db},
-			CartSvc: cart.Service{
-				Repo: cart.CartRepository{
+			CartSvc: &cart.Service{
+				Repo: &cart.CartRepository{
 					DB: db,
 				},
-				ProductSvc: productSvc,
+				ProductSvc: &productSvc,
 			},
-			ProductSvc: productSvc,
+			ProductSvc: &productSvc,
 		},
 	}
 }

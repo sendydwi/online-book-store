@@ -19,9 +19,9 @@ type CartHandler struct {
 func NewRestHandler(db *gorm.DB) *CartHandler {
 	return &CartHandler{
 		Svc: Service{
-			Repo: CartRepository{DB: db},
-			ProductSvc: product.Service{
-				Repo: product.ProductRepository{
+			Repo: &CartRepository{DB: db},
+			ProductSvc: &product.Service{
+				Repo: &product.ProductRepository{
 					DB: db,
 				},
 			},

@@ -5,6 +5,14 @@ import (
 	"gorm.io/gorm"
 )
 
+type OrderRepositoryInterface interface {
+	CreateOrder(order entity.Order, orderItem []*entity.OrderItem) error
+	DeleteOrder(order entity.Order) error
+	GetOrderById(orderId string) (*entity.Order, error)
+	GetOrderItemByOrderId(orderId string) ([]entity.OrderItem, error)
+	GetOrderByUserId(userId string) ([]entity.Order, error)
+}
+
 type OrderRepository struct {
 	DB *gorm.DB
 }

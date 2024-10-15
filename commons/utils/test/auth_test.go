@@ -32,7 +32,7 @@ func TestCheckAuth(t *testing.T) {
 		return c, w
 	}
 
-	t.Run("missing authorization header", func(t *testing.T) {
+	t.Run("missing_authorization_header", func(t *testing.T) {
 		c, w := createTestContext("")
 		utils.CheckAuth(c)
 
@@ -72,7 +72,7 @@ func TestCheckAuth(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "Invalid or expired token")
 	})
 
-	t.Run("valid token", func(t *testing.T) {
+	t.Run("valid_token", func(t *testing.T) {
 		claims := jwt.MapClaims{
 			"exp": time.Now().Add(time.Hour).Unix(),
 			"id":  "123",

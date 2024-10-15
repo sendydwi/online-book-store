@@ -12,9 +12,16 @@ import (
 	"gorm.io/gorm"
 )
 
+type CartServiceInterface interface {
+	UpdateCartItem(updateRequest apicart.CartUpdateRequest, userId string) error
+	getCurrentCart(userId string) (*entity.Cart, error)
+	GetCartItem(userId string) (*apicart.GetCartResponse, error)
+	UpdateCartStatusToOrdered(userId string) error
+}
+
 type Service struct {
-	Repo       CartRepository
-	ProductSvc product.Service
+	Repo       CartRepositoryInterface
+	ProductSvc product.ProductServiceInterface
 }
 
 func (s *Service) UpdateCartItem(updateRequest apicart.CartUpdateRequest, userId string) error {
@@ -89,7 +96,7 @@ func (s *Service) GetCartItem(userId string) (*apicart.GetCartResponse, error) {
 		wg.Add(1)
 		go func(item entity.CartItem) {
 			defer wg.Done()
-			book, err := s.ProductSvc.Repo.GetProductById(item.ProductId)
+			book, err := s.ProductSvc.GetProductById(item.ProductId)
 			if err != nil {
 				return
 			}

@@ -9,12 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sendydwi/online-book-store/services/user"
-	mock_user "github.com/sendydwi/online-book-store/services/user/mocks"
+	mock_user "github.com/sendydwi/online-book-store/services/user/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
-
-// Mock for the UserService
 
 func Test_RegisterUser_Handler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -25,7 +23,6 @@ func Test_RegisterUser_Handler(t *testing.T) {
 	mockSvc := mock_user.NewMockUserServiceInterface(ctrl)
 	handler := user.UserHandler{Svc: mockSvc}
 
-	// Helper to create a request with JSON payload
 	createTestContext := func(jsonPayload string) (*gin.Context, *httptest.ResponseRecorder) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -37,7 +34,7 @@ func Test_RegisterUser_Handler(t *testing.T) {
 		return c, w
 	}
 
-	t.Run("invalid JSON request", func(t *testing.T) {
+	t.Run("invalid_json_request", func(t *testing.T) {
 		c, w := createTestContext(`{invalid}}`)
 		handler.RegisterUser(c)
 
@@ -58,12 +55,12 @@ func Test_RegisterUser_Handler(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "email already used")
 	})
 
-	t.Run("internal server error", func(t *testing.T) {
+	t.Run("internal_server_error", func(t *testing.T) {
 		jsonPayload := `{"email":"email@example.com","password":"this_password"}`
 		c, w := createTestContext(jsonPayload)
 
 		gomock.InOrder(
-			mockSvc.EXPECT().RegisterUser("email@example.com", "this_password").Return(errors.New("unexpected error")).Times(1),
+			mockSvc.EXPECT().RegisterUser("email@example.com", "this_password").Return(errors.New("service error")).Times(1),
 		)
 
 		handler.RegisterUser(c)
@@ -95,7 +92,6 @@ func Test_LoginUser_Handler(t *testing.T) {
 	mockSvc := mock_user.NewMockUserServiceInterface(ctrl)
 	handler := user.UserHandler{Svc: mockSvc}
 
-	// Helper to create a request with JSON payload
 	createTestContext := func(jsonPayload string) (*gin.Context, *httptest.ResponseRecorder) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -142,14 +138,12 @@ func Test_LoginUser_Handler(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "wrong email or password")
 	})
 
-	// Case 3: Internal Server Error
 	t.Run("internal_server_error", func(t *testing.T) {
 		jsonPayload := `{"email":"email@example.com","password":"this_password"}`
 		c, w := createTestContext(jsonPayload)
 
-		// Mock service behavior
 		gomock.InOrder(
-			mockSvc.EXPECT().Login("email@example.com", "this_password").Return("", errors.New("unexpected error")).Times(1),
+			mockSvc.EXPECT().Login("email@example.com", "this_password").Return("", errors.New("service error")).Times(1),
 		)
 
 		handler.LoginUser(c)
@@ -157,12 +151,10 @@ func Test_LoginUser_Handler(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 
-	// Case 4: Successful login
-	t.Run("successful login", func(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
 		jsonPayload := `{"email":"email@example.com","password":"this_password"}`
 		c, w := createTestContext(jsonPayload)
 
-		// Mock service behavior
 		gomock.InOrder(
 			mockSvc.EXPECT().Login("email@example.com", "this_password").Return("valid_token", nil).Times(1),
 		)
