@@ -1,7 +1,7 @@
 package order
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -16,7 +16,7 @@ import (
 )
 
 type OrderHandler struct {
-	Svc Service
+	Svc OrderServiceInterface
 }
 
 func NewRestHandler(db *gorm.DB) *OrderHandler {
@@ -27,8 +27,8 @@ func NewRestHandler(db *gorm.DB) *OrderHandler {
 	}
 
 	return &OrderHandler{
-		Svc: Service{
-			Repo: OrderRepository{DB: db},
+		Svc: &Service{
+			Repo: &OrderRepository{DB: db},
 			CartSvc: &cart.Service{
 				Repo: &cart.CartRepository{
 					DB: db,
@@ -52,7 +52,10 @@ func (o *OrderHandler) CreateOrder(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		log.Printf("[create_order][error] failed to read request, error: %s", err.Error())
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -60,7 +63,10 @@ func (o *OrderHandler) CreateOrder(ctx *gin.Context) {
 	err = o.Svc.CreateOrder(userId, request)
 	if err != nil {
 		log.Printf("[create_order][error] failed to create order, error: %s", err.Error())
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -73,15 +79,23 @@ func (o *OrderHandler) CreateOrder(ctx *gin.Context) {
 func (o *OrderHandler) GetOrderDetail(ctx *gin.Context) {
 	orderId := ctx.Param("id")
 	if orderId == "" {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("id not found"))
+		fmt.Println("gimana ini")
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: "id not found",
+		})
 		return
 	}
 
 	userId := ctx.GetString("userId")
+	fmt.Println(orderId, userId)
 	response, err := o.Svc.GetOrderDetail(orderId, userId)
 	if err != nil {
 		log.Printf("[get_order_history][error] failed to create order, error: %s", err.Error())
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -95,12 +109,18 @@ func (o *OrderHandler) GetOrderDetail(ctx *gin.Context) {
 func (o *OrderHandler) GetOrderHistories(ctx *gin.Context) {
 	page, err := strconv.Atoi(ctx.DefaultQuery("page", "0"))
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("page is not a number"))
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: "page is not a number",
+		})
 		return
 	}
 	size, err := strconv.Atoi(ctx.DefaultQuery("size", "0"))
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, errors.New("size is not a number"))
+		ctx.JSON(http.StatusBadRequest, api.GenericResponse{
+			Status:  http.StatusBadRequest,
+			Message: "size is not a number",
+		})
 		return
 	}
 
@@ -108,13 +128,16 @@ func (o *OrderHandler) GetOrderHistories(ctx *gin.Context) {
 	response, err := o.Svc.GetOrderHistories(userId, page, size)
 	if err != nil {
 		log.Printf("[get_order_history][error] failed to create order, error: %s", err.Error())
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.JSON(http.StatusInternalServerError, api.GenericResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, api.GenericResponseWithData{
 		Status:  http.StatusOK,
-		Message: "created",
+		Message: "success",
 		Data:    response,
 	})
 }

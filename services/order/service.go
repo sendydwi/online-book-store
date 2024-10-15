@@ -19,7 +19,7 @@ type OrderServiceInterface interface {
 }
 
 type Service struct {
-	Repo       OrderRepository
+	Repo       OrderRepositoryInterface
 	CartSvc    cart.CartServiceInterface
 	ProductSvc product.ProductServiceInterface
 }
